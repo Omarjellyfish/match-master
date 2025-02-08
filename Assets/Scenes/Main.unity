@@ -200,7 +200,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0, g: 0.16876309, b: 0.4339623, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -225,7 +225,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 7.5
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -250,7 +250,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalPosition: {x: 3.01, y: 6.22, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -334,7 +334,7 @@ Transform:
   m_GameObject: {fileID: 619394800}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 2.95, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -369,9 +369,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a44cb02fa35ba14d9409daef24c8189, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 0
-  height: 0
-  tilePrefab: {fileID: 0}
+  width: 7
+  height: 10
+  tilePrefab: {fileID: 8966705721465908153, guid: b61eec7b2e638af45a4746d68a8a56dc, type: 3}
+  darkBackground: {fileID: 5850114191409436144, guid: 833f2215e19b1664c9b54abdca2ef385, type: 3}
+  lightBackground: {fileID: 8151147836048333439, guid: 2783aa41d62d5fb4b833534901e9a2d1, type: 3}
+  candies:
+  - {fileID: 24322804916744271, guid: f4eaab9afbd28da4fae3518a19633d13, type: 3}
+  - {fileID: 4815801179956205127, guid: bbf2ca8cb83ea054788803d12acf12bc, type: 3}
+  - {fileID: 4300778923054062881, guid: d5acf855147efd34e957325f3427910b, type: 3}
+  - {fileID: 134002361644331963, guid: 02d44859c01327d46bf4f8f6d136d493, type: 3}
+  - {fileID: 2218463808287769932, guid: 168705b2e2d013a4badb757f3080494b, type: 3}
+  - {fileID: 6879119109690730457, guid: 02b424e60aa2ebf4ab229778602ad8d5, type: 3}
 --- !u!4 &1212579265
 Transform:
   m_ObjectHideFlags: 0
@@ -381,7 +390,7 @@ Transform:
   m_GameObject: {fileID: 1212579263}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 2.87, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
