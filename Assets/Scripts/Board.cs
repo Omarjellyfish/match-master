@@ -175,6 +175,7 @@ public class Board : MonoBehaviour
     private IEnumerator FillBoardcol() {
         RefillBoard();
         yield return new WaitForSeconds(.5f);
+        state=GameState.wait;
 
         while (MatchesOnBoard())
         {
