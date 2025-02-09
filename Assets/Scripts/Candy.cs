@@ -1,188 +1,241 @@
 using System.Collections;
 using UnityEngine;
 
-public class Candy: MonoBehaviour
+public class Candy : MonoBehaviour
 {
     [Header("Board Variables")]
     public int col;
     public int row;
-    public int previousCol;
-    public int previousRow;
+    private int previousCol;
+    private int previousRow;
 
-    public int targetX;
-    public int targetY; 
+    private int targetX;
+    private int targetY;
 
     private Board board;
     private GameObject otherCandy;
+    private FindMatches findMatches;
 
     private Vector2 firstTouchPos;
     private Vector2 finalTouchPos;
     private Vector2 tempPos;
+
     public float swipeAngle = 0;
     public float swipeResist = 1f;
 
-    public bool isMatched=false;
+    public bool isMatched = false;
 
     void Start()
     {
+        // find the board in current scene
         board = FindFirstObjectByType<Board>();
-        targetX = (int)transform.position.x;
-        targetY = (int)transform.position.y;
-        row = targetY;
-        col = targetX;
-        previousRow = row;
-        previousCol = col;
-
+        findMatches = FindFirstObjectByType<FindMatches>();
+        // init positions
+        //targetX = (int)transform.position.x;
+        //targetY = (int)transform.position.y;
+        //row = targetY;
+        //col = targetX;
+        //previousRow = row;
+        //previousCol = col;
     }
 
-    // Update is called once per frame
     void Update()
     {
-        FindMatches();
+        //FindMatches();
+
         if (isMatched)
         {
-            SpriteRenderer mySprite=GetComponent<SpriteRenderer>();
+            // remove color and lower opacity to indicate a match
+            SpriteRenderer mySprite = GetComponent<SpriteRenderer>();
             mySprite.color = new Color(0f, 0f, 0f, .2f);
         }
-        targetY = row;
+
+        // update target positions
         targetX = col;
+        targetY = row;
+
+        // nove towards the target X position
         if (Mathf.Abs(targetX - transform.position.x) > .1)
         {
-            //move to the target
-            tempPos=new Vector2(targetX, transform.position.y);
-            transform.position = Vector2.Lerp(transform.position,tempPos, Time.deltaTime * 10f);
-            if (board.allCandies[col,row]!=this.gameObject)
-            {
-                board.allCandies[col,row]=this.gameObject;
-            }
+            // move towards the target
+            tempPos = new Vector2(targetX, transform.position.y);
+            transform.position = Vector2.Lerp(transform.position, tempPos, Time.deltaTime * 10f);
+            findMatches.FindAllMatches();
         }
         else
         {
-            //directly set pos 
+            // directly set position
             tempPos = new Vector2(targetX, transform.position.y);
-            transform.position=tempPos;
-            if (board.allCandies[col, row] != this.gameObject)
-            {
-                board.allCandies[col, row] = this.gameObject;
-            }
+            transform.position = tempPos;
         }
+
+        // move towards the target Y position
         if (Mathf.Abs(targetY - transform.position.y) > .1)
         {
-            //move to the target
+            // move towards the target
             tempPos = new Vector2(transform.position.x, targetY);
             transform.position = Vector2.Lerp(transform.position, tempPos, Time.deltaTime * 10f);
+            findMatches.FindAllMatches();
         }
         else
         {
-            //directly set pos 
+            // directly set position
             tempPos = new Vector2(transform.position.x, targetY);
             transform.position = tempPos;
+        }
+
+        // update only after making sure candies change positions
+        if (Mathf.Abs(targetX - transform.position.x) < .1 && Mathf.Abs(targetY - transform.position.y) < .1)
+        {
+            // ensure correct position of candies on board
+            transform.position = new Vector2(targetX, targetY);
             board.allCandies[col, row] = this.gameObject;
         }
-        Debug.Log(tempPos);
-
     }
+
     public IEnumerator CheckMoveCo()
     {
         yield return new WaitForSeconds(.3f);
-        if (otherCandy != null) {
+
+        if (otherCandy != null)
+        {
+            // swap back if no match
             if (!isMatched && !otherCandy.GetComponent<Candy>().isMatched)
             {
-                otherCandy.GetComponent<Candy>().row = row;
-                otherCandy.GetComponent<Candy>().col = col;
-                row = previousRow;
-                col = previousCol;
+                SwapCandies(col, row, otherCandy.GetComponent<Candy>().col, otherCandy.GetComponent<Candy>().row);
+                yield return new WaitForSeconds(.5f);
+                board.state = GameState.move;
             }
-           else
+            else
             {
+                //there is a match, destroy it
                 board.DestroyMatches();
             }
             otherCandy = null;
         }
-       
     }
+
     private void OnMouseDown()
     {
+        if (board.state == GameState.wait)
+        {
+            return;
+        }
+        // get firsttouchpos
         firstTouchPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        
     }
+
     private void OnMouseUp()
     {
-        finalTouchPos= Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        // get finaltouchpos
+        if (board.state == GameState.wait)
+        {
+            return ;
+        }
+        finalTouchPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         CalcAngle();
     }
+
     void CalcAngle()
     {
-        if (Mathf.Abs(finalTouchPos.y - firstTouchPos.y)> swipeResist || Mathf.Abs(finalTouchPos.x - firstTouchPos.x) > swipeResist)
+        // check if swipes pass the treshold
+        if (Mathf.Abs(finalTouchPos.y - firstTouchPos.y) > swipeResist || Mathf.Abs(finalTouchPos.x - firstTouchPos.x) > swipeResist)
         {
             swipeAngle = Mathf.Atan2(finalTouchPos.y - firstTouchPos.y, finalTouchPos.x - firstTouchPos.x) * 180 / Mathf.PI;
-            //Debug.Log(swipeAngle);
             MovePieces();
+            board.state = GameState.wait;
         }
-        
+        else
+        {
+            board.state = GameState.move;
+        }
     }
+
     void MovePieces()
     {
-        if(swipeAngle>-45 &&swipeAngle<=45 &&col<board.width-1)
+        // Ensure correct swapping direction
+        if (swipeAngle > -45 && swipeAngle <= 45 && col < board.width - 1)
         {
-            //right swipe
-            otherCandy = board.allCandies[col + 1, row];
-            otherCandy.GetComponent<Candy>().col -= 1;
-            col++;
-        }else if(swipeAngle > 45 && swipeAngle <= 135 && row < board.height-1)
-        {
-            //up swipe
-            otherCandy = board.allCandies[col, row+1];
-            otherCandy.GetComponent<Candy>().row-= 1;
-            row++;
+            // Right swipe
+            SwapCandies(col, row, col + 1, row);
         }
-        else if ((swipeAngle > 135 || swipeAngle<=-135) && col>0)
+        else if (swipeAngle > 45 && swipeAngle <= 135 && row < board.height - 1)
         {
-            //left swipe 
-            otherCandy = board.allCandies[col-1, row];
-            otherCandy.GetComponent<Candy>().col += 1;
-            col--;
+            // Up swipe
+            SwapCandies(col, row, col, row + 1);
         }
-        else if (swipeAngle < -45 && swipeAngle >= -135 && row>0)
+        else if ((swipeAngle > 135 || swipeAngle <= -135) && col > 0)
         {
-            //down swipe
-            otherCandy = board.allCandies[col, row - 1];
-            otherCandy.GetComponent<Candy>().row += 1;
-            row--;
+            // Left swipe
+            SwapCandies(col, row, col - 1, row);
         }
+        else if (swipeAngle < -45 && swipeAngle >= -135 && row > 0)
+        {
+            // Down swipe
+            SwapCandies(col, row, col, row - 1);
+        }
+        //start coroutine to ensure move is eligible
         StartCoroutine(CheckMoveCo());
-
     }
-    void FindMatches()
+
+    void SwapCandies(int col1, int row1, int col2, int row2)
     {
-        if (col > 0 && col < board.width - 1)
-        {
+        // Update the reference to the other candy
+        otherCandy = board.allCandies[col2, row2];
 
-            GameObject leftCandy1 = board.allCandies[col - 1, row];
-            GameObject rightCandy1 = board.allCandies[col + 1, row];
-            if (leftCandy1 != null && rightCandy1 != null)
-            {
-                if (leftCandy1.CompareTag(this.gameObject.tag) && rightCandy1.CompareTag(this.gameObject.tag))
-                {
-                    leftCandy1.GetComponent<Candy>().isMatched = true;
-                    rightCandy1.GetComponent<Candy>().isMatched = true;
-                    isMatched = true;
-                }
-            }
-        }
-        if (row > 0 && row < board.height - 1)
-        {
-            GameObject upCandy1 = board.allCandies[col, row+1];
-            GameObject bottomCandy1 = board.allCandies[col, row-1];
-            if (upCandy1 != null && bottomCandy1 != null)
-            {
-                if (upCandy1.CompareTag(this.gameObject.tag) && bottomCandy1.CompareTag(this.gameObject.tag))
-                {
-                    upCandy1.GetComponent<Candy>().isMatched = true;
-                    bottomCandy1.GetComponent<Candy>().isMatched = true;
-                    isMatched = true;
-                }
-            }
-        }
+        // Store previous positions for potential swap back
+        previousCol = col;
+        previousRow = row;
+
+        otherCandy.GetComponent<Candy>().previousCol = otherCandy.GetComponent<Candy>().col;
+        otherCandy.GetComponent<Candy>().previousRow = otherCandy.GetComponent<Candy>().row;
+
+        // Swap in the board array
+        board.allCandies[col2, row2] = this.gameObject;
+        board.allCandies[col1, row1] = otherCandy;
+
+        // Update the candies col and row values
+        col = col2;
+        row = row2;
+
+        otherCandy.GetComponent<Candy>().col = col1;
+        otherCandy.GetComponent<Candy>().row = row1;
     }
+
+    //void FindMatches()
+    //{
+    //    // Check for horizontal matches
+    //    if (col > 0 && col < board.width - 1)
+    //    {
+    //        GameObject leftCandy = board.allCandies[col - 1, row];
+    //        GameObject rightCandy = board.allCandies[col + 1, row];
+
+    //        if (leftCandy != null && rightCandy != null)
+    //        {
+    //            if (leftCandy.CompareTag(this.gameObject.tag) && rightCandy.CompareTag(this.gameObject.tag))
+    //            {
+    //                leftCandy.GetComponent<Candy>().isMatched = true;
+    //                rightCandy.GetComponent<Candy>().isMatched = true;
+    //                isMatched = true;
+    //            }
+    //        }
+    //    }
+
+    //    // Check for vertical matches
+    //    if (row > 0 && row < board.height - 1)
+    //    {
+    //        GameObject upCandy = board.allCandies[col, row + 1];
+    //        GameObject downCandy = board.allCandies[col, row - 1];
+
+    //        if (upCandy != null && downCandy != null)
+    //        {
+    //            if (upCandy.CompareTag(this.gameObject.tag) && downCandy.CompareTag(this.gameObject.tag))
+    //            {
+    //                upCandy.GetComponent<Candy>().isMatched = true;
+    //                downCandy.GetComponent<Candy>().isMatched = true;
+    //                isMatched = true;
+    //            }
+    //        }
+    //    }
+    //}
 }
