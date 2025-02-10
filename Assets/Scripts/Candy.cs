@@ -20,13 +20,22 @@ public class Candy : MonoBehaviour
     private Vector2 finalTouchPos;
     private Vector2 tempPos;
 
+    [Header("Swiper Vars")]
     public float swipeAngle = 0;
     public float swipeResist = 1f;
 
     public bool isMatched = false;
 
+    [Header("powerup stuff")]
+    public bool isColBomb;
+    public bool isRowBomb;
+    public GameObject rowArrow;
+    public GameObject colArrow;
     void Start()
     {
+        isColBomb = false;
+        isRowBomb = false;
+
         // find the board in current scene
         board = FindFirstObjectByType<Board>();
         findMatches = FindFirstObjectByType<FindMatches>();
@@ -39,6 +48,18 @@ public class Candy : MonoBehaviour
         //previousCol = col;
     }
 
+
+    //for testing and debug.
+    private void OnMouseOver()
+    {
+        if (Input.GetMouseButtonDown(1))
+        {
+            //isColBomb = true;
+            isRowBomb=true;
+            GameObject arrow = Instantiate(rowArrow, transform.position, Quaternion.identity);
+            arrow.transform.parent = this.transform;
+        }
+    }
     void Update()
     {
         //FindMatches();

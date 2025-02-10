@@ -23,7 +23,9 @@ public class Board : MonoBehaviour
     private BackgroundTile[,] allTiles;
     public GameObject[] candies;
     public GameObject[,] allCandies;
+    public GameObject DestroyEffect;
     private FindMatches findMatches;
+    
 
     void Start()
     {
@@ -95,6 +97,8 @@ public class Board : MonoBehaviour
     private void DestroyMatchesAt(int col , int row) {
         if (allCandies[col, row].GetComponent<Candy>().isMatched) {
             findMatches.currentMatches.Remove(allCandies[col, row]);
+            GameObject particle = Instantiate(DestroyEffect, allCandies[col, row].transform.position, Quaternion.identity);
+            Destroy(particle, .2f);
             Destroy(allCandies[col, row]);
             allCandies[col, row] = null;
         }

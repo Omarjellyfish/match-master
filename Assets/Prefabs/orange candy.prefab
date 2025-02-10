@@ -152,3 +152,7 @@ MonoBehaviour:
   swipeAngle: 0
   swipeResist: 1
   isMatched: 0
+  isColBomb: 0
+  isRowBomb: 0
+  rowArrow: {fileID: 436133926823193480, guid: 86ff20736cecf1343a55b846718804d6, type: 3}
+  colArrow: {fileID: 3626092726582742490, guid: 8036a1cbf1307e3408d35c971f187726, type: 3}

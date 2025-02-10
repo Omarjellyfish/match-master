@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
-
+using System.Linq;
 public class FindMatches : MonoBehaviour
 {
     private Board board;
@@ -41,6 +41,12 @@ public class FindMatches : MonoBehaviour
                         {
                             if (leftCandy.CompareTag(currentCandy.tag) && rightCandy.CompareTag(currentCandy.tag))
                             {
+                                if(currentCandy.GetComponent<Candy>().isRowBomb
+                                    || leftCandy.GetComponent<Candy>().isRowBomb
+                                    || rightCandy.GetComponent<Candy>().isRowBomb)
+                                {
+                                    currentMatches=currentMatches.Union(GetRowPieces(j)).ToList();
+                                }
                                 // Add matched candies to currentMatches
                                 AddMatches(leftCandy, currentCandy, rightCandy);
                             }
@@ -57,6 +63,13 @@ public class FindMatches : MonoBehaviour
                         {
                             if (upCandy.CompareTag(currentCandy.tag) && downCandy.CompareTag(currentCandy.tag))
                             {
+
+                                if (currentCandy.GetComponent<Candy>().isColBomb
+                                    || upCandy.GetComponent<Candy>().isColBomb
+                                    || downCandy.GetComponent<Candy>().isColBomb)
+                                {
+                                   currentMatches =currentMatches.Union(GetColPieces(i)).ToList();
+                                }
                                 // Add matched candies to currentMatches
                                 AddMatches(upCandy, currentCandy, downCandy);
                             }
@@ -80,5 +93,32 @@ public class FindMatches : MonoBehaviour
                 candy.GetComponent<Candy>().isMatched = true;
             }
         }
+    }
+
+    List<GameObject> GetColPieces(int col)
+    {
+        List<GameObject> candies=new List<GameObject>();
+        for ( int i = 0; i<board.height; i++)
+        {
+            if (board.allCandies[col, i]!=null) {
+                candies.Add(board.allCandies[col,i]);
+                board.allCandies[col,i].GetComponent<Candy>().isMatched = true;
+                    }
+        }
+        return candies;
+    }
+
+    List<GameObject> GetRowPieces(int row)
+    {
+        List<GameObject> candies = new List<GameObject>();
+        for (int i = 0; i < board.width; i++)
+        {
+            if (board.allCandies[i, row] != null)
+            {
+                candies.Add(board.allCandies[i, row]);
+                board.allCandies[i, row].GetComponent<Candy>().isMatched = true;
+            }
+        }
+        return candies;
     }
 }
