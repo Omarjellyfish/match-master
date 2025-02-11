@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
+using Unity.VisualScripting;
 public class FindMatches : MonoBehaviour
 {
     private Board board;
@@ -18,6 +19,23 @@ public class FindMatches : MonoBehaviour
         StartCoroutine(FindAllMatchesCo());
     }
 
+    private List<GameObject> IsAjacentBomb(Candy candy1, Candy candy2, Candy candy3)
+    {
+        List<GameObject> currentCandies = new List<GameObject>();
+        if (candy1.isAdjacentBomb)
+        {
+            currentMatches = currentMatches.Union(GetAdjacentPieces(candy1.col,candy1.row)).ToList();
+        }
+        if (candy2.isAdjacentBomb)
+        {
+            currentMatches = currentMatches.Union(GetAdjacentPieces(candy2.col, candy2.row)).ToList();
+        }
+        if (candy3.isAdjacentBomb)
+        {
+            currentMatches = currentMatches.Union(GetAdjacentPieces(candy3.col, candy3.row)).ToList();
+        }
+        return currentCandies;
+    }
     private List<GameObject> IsRowBomb(Candy candy1, Candy candy2, Candy candy3)
     {
         List<GameObject> currentCandies = new List<GameObject>();
@@ -83,6 +101,7 @@ public class FindMatches : MonoBehaviour
                                 currentMatches=currentMatches.Union(IsRowBomb(currentCandyObject, leftCandyObject, rightCandyObject)).ToList();
                                 // Add matched candies to currentMatches, check for col bombs in the row(only the three candies in match)
                                 currentMatches=currentMatches.Union(IsColBomb(currentCandyObject,leftCandyObject,rightCandyObject)).ToList();
+                                currentMatches = currentMatches.Union(IsAjacentBomb(currentCandyObject, leftCandyObject, rightCandyObject)).ToList();
                                 AddMatches(leftCandy, currentCandy, rightCandy);
                             }
                         }
@@ -108,6 +127,7 @@ public class FindMatches : MonoBehaviour
 
                                 currentMatches=currentMatches.Union(IsRowBomb(currentCandyObject,upCandyObject, downCandyObject)).ToList();
                                 currentMatches = currentMatches.Union(IsColBomb(currentCandyObject, upCandyObject, downCandyObject)).ToList();
+                                currentMatches = currentMatches.Union(IsAjacentBomb(currentCandyObject, upCandyObject, downCandyObject)).ToList();
 
                                 //if (currentCandy.GetComponent<Candy>().isRowBomb)
                                 //{
@@ -160,6 +180,22 @@ public class FindMatches : MonoBehaviour
                 }
             }
         }
+    }
+    List<GameObject> GetAdjacentPieces(int col,int row) {
+        List<GameObject> candies = new List<GameObject>();
+        for (int i = col-1; i<=col+1; i++)
+        {
+            for(int j = row-1; j<=row+1; j++)
+            {
+                //Check for piece inside the board
+                if(i>=0 && i<board.width && j>=0 && j < board.height)
+                {
+                    candies.Add(board.allCandies[i, j]);
+                    board.allCandies[i, j].GetComponent<Candy>().isMatched = true;    
+                }
+            }
+        }
+        return candies;
     }
     List<GameObject> GetColPieces(int col)
     {

@@ -159,3 +159,5 @@ MonoBehaviour:
   colArrow: {fileID: 3626092726582742490, guid: 8036a1cbf1307e3408d35c971f187726, type: 3}
   isColorBomb: 0
   colorBomb: {fileID: 1771489754710156349, guid: dd6586a2e3922c54b80e928274fa14b3, type: 3}
+  isAdjacentBomb: 0
+  adjacentMarker: {fileID: 4412626762451525936, guid: 0321531abcfafc64aaa61a361d8bb34a, type: 3}

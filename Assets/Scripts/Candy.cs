@@ -33,11 +33,14 @@ public class Candy : MonoBehaviour
     public GameObject colArrow;
     public bool isColorBomb;
     public GameObject colorBomb;
+    public bool isAdjacentBomb;
+    public GameObject adjacentMarker;
     void Start()
     {
         isColBomb = false;
         isRowBomb = false;
         isColorBomb = false;
+        isAdjacentBomb = false;
         // find the board in current scene
         board = FindFirstObjectByType<Board>();
         findMatches = FindFirstObjectByType<FindMatches>();
@@ -57,17 +60,17 @@ public class Candy : MonoBehaviour
         if (Input.GetMouseButtonDown(1))
         {
             //isColBomb = true;
+            isAdjacentBomb=true;
+            GameObject adjacent = Instantiate(adjacentMarker, transform.position, Quaternion.identity);
+            adjacent.transform.parent = this.transform;
+        }
+        if (Input.GetMouseButtonDown(2))
+        {
+            //isColBomb = true;
             isColorBomb= true;
-            GameObject color = Instantiate(colorBomb, transform.position, Quaternion.identity);
+            GameObject color= Instantiate(colorBomb, transform.position, Quaternion.identity);
             color.transform.parent = this.transform;
         }
-        //if (Input.GetMouseButtonDown(2))
-        //{
-        //    //isColBomb = true;
-        //    isRowBomb = true;
-        //    GameObject arrow = Instantiate(rowArrow, transform.position, Quaternion.identity);
-        //    arrow.transform.parent = this.transform;
-        //}
     }
     void Update()
     {
@@ -131,7 +134,7 @@ public class Candy : MonoBehaviour
             findMatches.MatchPiecesOfColor(otherCandy.tag);
             isMatched = true;
 
-        }else if (otherCandy.GetComponent<Candy>().isColorBomb){
+        }else if (otherCandy!=null && otherCandy.GetComponent<Candy>().isColorBomb){
             //its color bomb, it has the color to destroy
             findMatches.MatchPiecesOfColor(this.gameObject.tag);
             otherCandy.GetComponent<Candy>().isMatched = true;
@@ -155,6 +158,7 @@ public class Candy : MonoBehaviour
             }
             //otherCandy = null;
         }
+        board.state=GameState.move;
     }
 
     private void OnMouseDown()
@@ -200,22 +204,50 @@ public class Candy : MonoBehaviour
         if (swipeAngle > -45 && swipeAngle <= 45 && col < board.width - 1)
         {
             // Right swipe
-            SwapCandies(col, row, col + 1, row);
+            if (col != board.width)
+            {
+                SwapCandies(col, row, col + 1, row);
+            }
+            else
+            {
+                board.state=GameState.move;
+            }
         }
         else if (swipeAngle > 45 && swipeAngle <= 135 && row < board.height - 1)
         {
             // Up swipe
-            SwapCandies(col, row, col, row + 1);
+            if (row != board.height)
+            {
+                SwapCandies(col, row, col, row + 1);
+            }
+            else
+            {
+                board.state = GameState.move;
+            }
         }
         else if ((swipeAngle > 135 || swipeAngle <= -135) && col > 0)
         {
             // Left swipe
-            SwapCandies(col, row, col - 1, row);
+            if (col != 0)
+            {
+                SwapCandies(col, row, col - 1, row);
+            }
+            else
+            {
+                board.state = GameState.move;
+            }
         }
         else if (swipeAngle < -45 && swipeAngle >= -135 && row > 0)
         {
             // Down swipe
-            SwapCandies(col, row, col, row - 1);
+            if (row != 0)
+            {
+                SwapCandies(col, row, col, row - 1);
+            }
+            else
+            {
+                board.state = GameState.move;
+            }
         }
         //start coroutine to ensure move is eligible
         StartCoroutine(CheckMoveCo());
