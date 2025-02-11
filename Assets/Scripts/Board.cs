@@ -3,6 +3,7 @@ using System.Collections;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI.Table;
 
 public enum GameState{
     wait,
@@ -103,7 +104,6 @@ public class Board : MonoBehaviour
             if(findMatches.currentMatches.Count==4||findMatches.currentMatches.Count==7) {
                 findMatches.CheckBombs();
                     }
-            findMatches.currentMatches.Remove(allCandies[col, row]);
             GameObject particle = Instantiate(DestroyEffect, allCandies[col, row].transform.position, Quaternion.identity);
             Destroy(particle, .2f);
             Destroy(allCandies[col, row]);
@@ -125,6 +125,8 @@ public class Board : MonoBehaviour
                 }
             }
         }
+        findMatches.currentMatches.Clear();
+
         StartCoroutine(DecreaseRowCo());
     }
     private IEnumerator DecreaseRowCo() {
