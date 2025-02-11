@@ -8,5 +8,6 @@ public class GameplayNotes
 
     --maybe make the game have collectibles, where at the end of some games u get a chance to get a rare gem
     --rare gems can be used to purchase items, have different unique things for the game.
+    --will need image for rainbow gem, it destroys all gems of same color or whatever
      */
 }

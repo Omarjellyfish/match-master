@@ -13,7 +13,7 @@ public class Candy : MonoBehaviour
     private int targetY;
 
     private Board board;
-    private GameObject otherCandy;
+    public GameObject otherCandy;
     private FindMatches findMatches;
 
     private Vector2 firstTouchPos;
@@ -26,16 +26,18 @@ public class Candy : MonoBehaviour
 
     public bool isMatched = false;
 
-    [Header("powerup stuff")]
+    [Header("powerupS")]
     public bool isColBomb;
     public bool isRowBomb;
     public GameObject rowArrow;
     public GameObject colArrow;
+    public bool isColorBomb;
+    public GameObject colorBomb;
     void Start()
     {
         isColBomb = false;
         isRowBomb = false;
-
+        isColorBomb = false;
         // find the board in current scene
         board = FindFirstObjectByType<Board>();
         findMatches = FindFirstObjectByType<FindMatches>();
@@ -55,21 +57,28 @@ public class Candy : MonoBehaviour
         if (Input.GetMouseButtonDown(1))
         {
             //isColBomb = true;
-            isRowBomb=true;
-            GameObject arrow = Instantiate(rowArrow, transform.position, Quaternion.identity);
-            arrow.transform.parent = this.transform;
+            isColorBomb= true;
+            GameObject color = Instantiate(colorBomb, transform.position, Quaternion.identity);
+            color.transform.parent = this.transform;
         }
+        //if (Input.GetMouseButtonDown(2))
+        //{
+        //    //isColBomb = true;
+        //    isRowBomb = true;
+        //    GameObject arrow = Instantiate(rowArrow, transform.position, Quaternion.identity);
+        //    arrow.transform.parent = this.transform;
+        //}
     }
     void Update()
     {
         //FindMatches();
 
-        if (isMatched)
-        {
-            // remove color and lower opacity to indicate a match
-            SpriteRenderer mySprite = GetComponent<SpriteRenderer>();
-            mySprite.color = new Color(0f, 0f, 0f, .2f);
-        }
+        //if (isMatched)
+        //{
+        //    // remove color and lower opacity to indicate a match
+        //    SpriteRenderer mySprite = GetComponent<SpriteRenderer>();
+        //    mySprite.color = new Color(0f, 0f, 0f, .2f);
+        //}
 
         // update target positions
         targetX = col;
@@ -116,6 +125,17 @@ public class Candy : MonoBehaviour
 
     public IEnumerator CheckMoveCo()
     {
+        if(isColorBomb)
+        {
+            //its a colorbomb
+            findMatches.MatchPiecesOfColor(otherCandy.tag);
+            isMatched = true;
+
+        }else if (otherCandy.GetComponent<Candy>().isColorBomb){
+            //its color bomb, it has the color to destroy
+            findMatches.MatchPiecesOfColor(this.gameObject.tag);
+            otherCandy.GetComponent<Candy>().isMatched = true;
+        }
         yield return new WaitForSeconds(.3f);
 
         if (otherCandy != null)
@@ -125,6 +145,7 @@ public class Candy : MonoBehaviour
             {
                 SwapCandies(col, row, otherCandy.GetComponent<Candy>().col, otherCandy.GetComponent<Candy>().row);
                 yield return new WaitForSeconds(.5f);
+                board.currentCandy = null;
                 board.state = GameState.move;
             }
             else
@@ -132,7 +153,7 @@ public class Candy : MonoBehaviour
                 //there is a match, destroy it
                 board.DestroyMatches();
             }
-            otherCandy = null;
+            //otherCandy = null;
         }
     }
 
@@ -165,6 +186,7 @@ public class Candy : MonoBehaviour
             swipeAngle = Mathf.Atan2(finalTouchPos.y - firstTouchPos.y, finalTouchPos.x - firstTouchPos.x) * 180 / Mathf.PI;
             MovePieces();
             board.state = GameState.wait;
+            board.currentCandy = this;
         }
         else
         {
@@ -222,6 +244,25 @@ public class Candy : MonoBehaviour
         otherCandy.GetComponent<Candy>().col = col1;
         otherCandy.GetComponent<Candy>().row = row1;
     }
+
+    public void MakeColBomb()
+    {
+        isColBomb = true;
+        GameObject arrow = Instantiate(colArrow, transform.position, Quaternion.identity);
+        arrow.transform.parent = this.transform;
+    }
+    public void MakeRowBomb()
+    {
+        isRowBomb = true;
+        GameObject arrow = Instantiate(rowArrow, transform.position, Quaternion.identity);
+        arrow.transform.parent = this.transform;
+    }
+
+
+
+
+
+
 
     //void FindMatches()
     //{

@@ -41,13 +41,25 @@ public class FindMatches : MonoBehaviour
                         {
                             if (leftCandy.CompareTag(currentCandy.tag) && rightCandy.CompareTag(currentCandy.tag))
                             {
-                                if(currentCandy.GetComponent<Candy>().isRowBomb
+                                if (currentCandy.GetComponent<Candy>().isRowBomb
                                     || leftCandy.GetComponent<Candy>().isRowBomb
                                     || rightCandy.GetComponent<Candy>().isRowBomb)
                                 {
-                                    currentMatches=currentMatches.Union(GetRowPieces(j)).ToList();
+                                    currentMatches = currentMatches.Union(GetRowPieces(j)).ToList();
                                 }
-                                // Add matched candies to currentMatches
+                                // Add matched candies to currentMatches, check for col bombs in the row(only the three candies in match)
+                                if (currentCandy.GetComponent<Candy>().isColBomb)
+                                {
+                                    currentMatches = currentMatches.Union(GetColPieces(i)).ToList();
+                                }
+                                if (leftCandy.GetComponent<Candy>().isColBomb)
+                                {
+                                    currentMatches = currentMatches.Union(GetColPieces(i - 1)).ToList();
+                                }
+                                if (rightCandy.GetComponent<Candy>().isColBomb)
+                                {
+                                    currentMatches = currentMatches.Union(GetColPieces(i + 1)).ToList();
+                                }
                                 AddMatches(leftCandy, currentCandy, rightCandy);
                             }
                         }
@@ -68,9 +80,21 @@ public class FindMatches : MonoBehaviour
                                     || upCandy.GetComponent<Candy>().isColBomb
                                     || downCandy.GetComponent<Candy>().isColBomb)
                                 {
-                                   currentMatches =currentMatches.Union(GetColPieces(i)).ToList();
+                                    currentMatches = currentMatches.Union(GetColPieces(i)).ToList();
                                 }
-                                // Add matched candies to currentMatches
+                                // Add matched candies to currentMatches, check for row bombs in the col(only the three candies in match)
+                                if (currentCandy.GetComponent<Candy>().isRowBomb)
+                                {
+                                    currentMatches = currentMatches.Union(GetRowPieces(j)).ToList();
+                                }
+                                if (upCandy.GetComponent<Candy>().isRowBomb)
+                                {
+                                    currentMatches = currentMatches.Union(GetRowPieces(j + 1)).ToList();
+                                }
+                                if (downCandy.GetComponent<Candy>().isRowBomb)
+                                {
+                                    currentMatches = currentMatches.Union(GetRowPieces(j - 1)).ToList();
+                                }
                                 AddMatches(upCandy, currentCandy, downCandy);
                             }
                         }
@@ -94,16 +118,33 @@ public class FindMatches : MonoBehaviour
             }
         }
     }
+    public void MatchPiecesOfColor(string color)
+    {
+        for (int i = 0; i < board.width; i++)
+        {
+            for (int j = 0; j < board.height; j++)
+            {
+                if (board.allCandies[i, j] != null)
+                {
+                    if (board.allCandies[i, j].tag == color)
+                    {
+                        board.allCandies[i, j].GetComponent<Candy>().isMatched = true;
 
+                    }
+                }
+            }
+        }
+    }
     List<GameObject> GetColPieces(int col)
     {
-        List<GameObject> candies=new List<GameObject>();
-        for ( int i = 0; i<board.height; i++)
+        List<GameObject> candies = new List<GameObject>();
+        for (int i = 0; i < board.height; i++)
         {
-            if (board.allCandies[col, i]!=null) {
-                candies.Add(board.allCandies[col,i]);
-                board.allCandies[col,i].GetComponent<Candy>().isMatched = true;
-                    }
+            if (board.allCandies[col, i] != null)
+            {
+                candies.Add(board.allCandies[col, i]);
+                board.allCandies[col, i].GetComponent<Candy>().isMatched = true;
+            }
         }
         return candies;
     }
@@ -121,4 +162,68 @@ public class FindMatches : MonoBehaviour
         }
         return candies;
     }
+
+    public void CheckBombs()
+    {
+        // Check if a candy was moved
+        if (board.currentCandy != null)
+        {
+            // Reference to the other candy involved in the swap
+            GameObject otherCandyObject = board.currentCandy.otherCandy;
+
+            // Check if the current candy is matched
+            if (board.currentCandy.isMatched)
+            {
+                // Unmatch it
+                board.currentCandy.isMatched = false;
+
+                // Decide bomb kind
+                if ((board.currentCandy.swipeAngle > -45 && board.currentCandy.swipeAngle <= 45) ||
+                    (board.currentCandy.swipeAngle < -135 || board.currentCandy.swipeAngle >= 135)
+                    )
+                {
+                    //l-r swipe right bomb
+                    board.currentCandy.MakeRowBomb();
+                }
+                else
+                {
+                    board.currentCandy.MakeColBomb();
+                }
+            }
+            // Else, check if the other candy is matched
+            else if (otherCandyObject != null)
+            {
+                Candy otherCandy = otherCandyObject.GetComponent<Candy>();
+                if (otherCandy != null && otherCandy.isMatched)
+                {
+                    // Unmatch it
+                    otherCandy.isMatched = false;
+
+                    // Decide bomb 
+                    if ((board.currentCandy.swipeAngle > -45 && board.currentCandy.swipeAngle <= 45) ||
+                    (board.currentCandy.swipeAngle < -135 || board.currentCandy.swipeAngle >= 135)
+                    )
+                    {
+                        //l-r swipe right bomb
+                        otherCandy.MakeRowBomb();
+                    }
+                    else
+                    {
+                        otherCandy.MakeColBomb();
+                    }
+                }
+            }
+        }
+    }
 }
+//int typeOfBomb = Random.Range(0, 100);
+//if (typeOfBomb < 50)
+//{
+//    // Make a row bomb on the other candy
+//    otherCandy.MakeRowBomb();
+//}
+//else
+//{
+//    // Make a column bomb on the other candy
+//    otherCandy.MakeColBomb();
+//}

@@ -149,6 +149,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   col: 0
   row: 0
+  otherCandy: {fileID: 0}
   swipeAngle: 0
   swipeResist: 1
   isMatched: 0
@@ -156,3 +157,5 @@ MonoBehaviour:
   isRowBomb: 0
   rowArrow: {fileID: 436133926823193480, guid: 86ff20736cecf1343a55b846718804d6, type: 3}
   colArrow: {fileID: 3626092726582742490, guid: 8036a1cbf1307e3408d35c971f187726, type: 3}
+  isColorBomb: 0
+  colorBomb: {fileID: 1771489754710156349, guid: dd6586a2e3922c54b80e928274fa14b3, type: 3}
