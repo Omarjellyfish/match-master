@@ -346,7 +346,7 @@ public class Board : MonoBehaviour
         }
         return false;
     }
-    private bool SwitchAndCheck(int col, int row, Vector2 direction)
+    public bool SwitchAndCheck(int col, int row, Vector2 direction)
     {
         SwitchPieces(col, row, direction);
         if (CheckForMatches()){

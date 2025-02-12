@@ -15,6 +15,7 @@ public class Candy : MonoBehaviour
     private Board board;
     public GameObject otherCandy;
     private FindMatches findMatches;
+    private HintManager hintManager;
 
     private Vector2 firstTouchPos;
     private Vector2 finalTouchPos;
@@ -44,6 +45,8 @@ public class Candy : MonoBehaviour
         // find the board in current scene
         board = FindFirstObjectByType<Board>();
         findMatches = FindFirstObjectByType<FindMatches>();
+        hintManager=FindFirstObjectByType<HintManager>();
+
         // init positions
         //targetX = (int)transform.position.x;
         //targetY = (int)transform.position.y;
@@ -164,12 +167,17 @@ public class Candy : MonoBehaviour
 
     private void OnMouseDown()
     {
+
         if (board.state == GameState.wait)
         {
             return;
         }
         // get firsttouchpos
         firstTouchPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        if(hintManager!= null)
+        {
+            hintManager.DestroyHint();
+        }
     }
 
     private void OnMouseUp()
