@@ -155,9 +155,9 @@ MonoBehaviour:
   isMatched: 0
   isColBomb: 0
   isRowBomb: 0
-  rowArrow: {fileID: 436133926823193480, guid: 86ff20736cecf1343a55b846718804d6, type: 3}
-  colArrow: {fileID: 3626092726582742490, guid: 8036a1cbf1307e3408d35c971f187726, type: 3}
+  rowArrow: {fileID: 436133926823193480, guid: 6dae376c8d6ac924fa560f7ad801296b, type: 3}
+  colArrow: {fileID: 3626092726582742490, guid: 8f86554d86792ae44a0aa05005323ff1, type: 3}
   isColorBomb: 0
-  colorBomb: {fileID: 1771489754710156349, guid: dd6586a2e3922c54b80e928274fa14b3, type: 3}
+  colorBomb: {fileID: 1771489754710156349, guid: 063b55b2f66263548a970eb154192231, type: 3}
   isAdjacentBomb: 0
-  adjacentMarker: {fileID: 4412626762451525936, guid: 0321531abcfafc64aaa61a361d8bb34a, type: 3}
+  adjacentMarker: {fileID: 4412626762451525936, guid: bb933555fbe418a46932acf355aa3677, type: 3}

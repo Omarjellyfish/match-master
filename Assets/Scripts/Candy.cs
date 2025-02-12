@@ -61,7 +61,7 @@ public class Candy : MonoBehaviour
         {
             //isColBomb = true;
             isAdjacentBomb=true;
-            GameObject adjacent = Instantiate(adjacentMarker, transform.position, Quaternion.identity);
+            GameObject adjacent= Instantiate(adjacentMarker, transform.position, Quaternion.identity);
             adjacent.transform.parent = this.transform;
         }
         if (Input.GetMouseButtonDown(2))
@@ -71,6 +71,7 @@ public class Candy : MonoBehaviour
             GameObject color= Instantiate(colorBomb, transform.position, Quaternion.identity);
             color.transform.parent = this.transform;
         }
+
     }
     void Update()
     {
@@ -290,7 +291,18 @@ public class Candy : MonoBehaviour
         arrow.transform.parent = this.transform;
     }
 
-
+    public void MakeAdjacentBomb()
+    {
+        isAdjacentBomb = true;
+        GameObject adjacent = Instantiate(adjacentMarker, transform.position, Quaternion.identity);
+        adjacent.transform.parent = this.transform;
+    }
+    public void MakeColorBomb()
+    {
+        isColorBomb= true;
+        GameObject colorB = Instantiate(colorBomb, transform.position, Quaternion.identity);
+        colorB.transform.parent = this.transform;
+    }
 
 
 
