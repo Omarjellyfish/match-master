@@ -1,18 +1,28 @@
 using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEngine;
 using static UnityEngine.Rendering.DebugUI.Table;
 
+//add a new state to check for player turn change(need to figure out how to do it)
+//setup an event for OnBoardChange(changeType),invoke different things depending on changetype?
+
+public enum ChangeType
+{
+    destroy,
+    refill,
+    reshuffle
+}
 public enum GameState{
     wait,
     move
      
 }
-public class Board : MonoBehaviour
+public class Board : NetworkBehaviour
 {
 
     public GameState state = GameState.move;
@@ -31,13 +41,30 @@ public class Board : MonoBehaviour
 
     public GameObject DestroyEffect;
     private FindMatches findMatches;
-    
 
+    //setup only when both players join, dont forget network behavior to various scripts
+
+    //public override void OnNetworkSpawn()
+    //{
+    //    base.OnNetworkSpawn();
+
+    //    // Only the server (host) runs Board setup
+    //    if (IsServer)
+    //    {
+    //        SetUp();
+    //    }
+    //}
+    public static Board Instance { get; private set; }
+    private void Awake()
+    {
+        if (Instance != null && Instance != this) Destroy(this.gameObject);
+        else Instance = this;
+    }
     void Start()
     {
-        findMatches = FindFirstObjectByType<FindMatches>();
-        allTiles=new BackgroundTile[width,height];
-        allCandies=new GameObject[width,height];
+        findMatches = FindMatches.Instance;
+        allTiles=new BackgroundTile[width,height]; //client side tile generation
+        allCandies=new GameObject[width,height]; //make this a network variable and have it modified throughout different scripts
         SetUp();
     }
     private void SetUp()
@@ -48,7 +75,7 @@ public class Board : MonoBehaviour
             {
                 Vector2 tempPosition= new Vector2(i,j+offSet);
                 Vector2 tilePosition= new Vector2(i,j);
-                SpriteRenderer currentTile = Instantiate(tilePrefab, tilePosition, Quaternion.identity);
+                SpriteRenderer currentTile = Instantiate(tilePrefab, tilePosition, Quaternion.identity); //split the tiles to be client side
                 currentTile.sprite = ((i + j)%2==0) ? lightBackground : darkBackground;
                 currentTile.transform.parent=this.transform;
                 currentTile.name="("+i+','+j+")";
@@ -61,12 +88,12 @@ public class Board : MonoBehaviour
                     candyToUse=Random.Range(0,candies.Length);
                 }
                 maxIter = 0;
-                GameObject candy = Instantiate(candies[candyToUse], tempPosition, Quaternion.identity);
+                GameObject candy = Instantiate(candies[candyToUse], tempPosition, Quaternion.identity);//split visual logic
                 candy.GetComponent<Candy>().row = j;
                 candy.GetComponent<Candy>().col = i;
-                candy.transform.parent = this.transform;
+                candy.transform.parent = this.transform; //network transform
                 candy.name = "(" + i + ',' + j + ")";
-                allCandies[i, j] = candy;
+                allCandies[i, j] = candy; // network var
             }
         }
         if (IsDeadLock())
@@ -75,6 +102,7 @@ public class Board : MonoBehaviour
             ShuffleBoard();
         }
     }
+    //checking matches for board creation
     private bool MatchesAt(int col,int row,GameObject piece)
     {
         if(col>1 && row > 1)
@@ -129,11 +157,12 @@ public class Board : MonoBehaviour
     //    }
     //    return (numberVertical == 5 || numberHorizontal == 5);
     //}
+    //bomb creation
     private void CheckToMakeBombs()
     {
         if (findMatches.currentMatches.Count == 4 || findMatches.currentMatches.Count==7)
         {
-            findMatches.CheckBombs();
+            findMatches.CheckBombs();//figure how to do this across network or make it client side and result is sent
         }
         //if (findMatches.currentMatches.Count == 5 || findMatches.currentMatches.Count == 8)
         //{
@@ -203,6 +232,7 @@ public class Board : MonoBehaviour
             allCandies[col, row] = null;
         }
     }
+    //destruction only server sided
     public void DestroyMatches()
     {
         if (allCandies != null)
@@ -222,6 +252,7 @@ public class Board : MonoBehaviour
 
         StartCoroutine(DecreaseRowCo());
     }
+    //server side
     private IEnumerator DecreaseRowCo() {
         int nullCount = 0;
         for(int i = 0; i < width; i++)
@@ -243,6 +274,7 @@ public class Board : MonoBehaviour
         StartCoroutine(FillBoardCo());
 
     }
+    //event refill
     private void RefillBoard()
     {
         for (int i =0; i < width; i++)
@@ -253,7 +285,7 @@ public class Board : MonoBehaviour
                 {
                     Vector2 tempPos=new Vector2(i,j+offSet);
                     int candyToUse = Random.Range(0, candies.Length);
-                    GameObject piece = Instantiate(candies[candyToUse], tempPos,Quaternion.identity);
+                    GameObject piece = Instantiate(candies[candyToUse], tempPos,Quaternion.identity);//visual serpartion here
                     allCandies[i, j] = piece;
                     piece.GetComponent<Candy>().row = j;
                     piece.GetComponent<Candy>().col = i;
@@ -302,7 +334,7 @@ public class Board : MonoBehaviour
     private void SwitchPieces(int col, int row , Vector2 direction)
     {
         //take second piece in holder
-        GameObject holder = allCandies[col + (int)direction.x, row + (int)direction.y] as GameObject;
+        GameObject holder = allCandies[col + (int)direction.x, row + (int)direction.y] as GameObject;//switching location logic, split
         //witching the first candy to be second position
         allCandies[col+(int)direction.x, row+(int)direction.y] = allCandies[col,row];
         allCandies[col,row]= holder;
@@ -315,7 +347,7 @@ public class Board : MonoBehaviour
             {
                 if (allCandies[i, j] != null)
                 {
-                    //,ale sure we are in the board
+                    //make sure we are in the board
                     if (i < width - 2)
                     {
                         //check to the right and two over
@@ -346,6 +378,7 @@ public class Board : MonoBehaviour
         }
         return false;
     }
+    //for deadlock checking
     public bool SwitchAndCheck(int col, int row, Vector2 direction)
     {
         SwitchPieces(col, row, direction);
@@ -381,7 +414,7 @@ public class Board : MonoBehaviour
         }
         return true;
     }
-
+    //shuffle event
     private void ShuffleBoard()
     {
         List<GameObject> newBoard = new List<GameObject>();

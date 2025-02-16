@@ -12,8 +12,8 @@ public class HintManager : MonoBehaviour
     public GameObject currentHint;
     void Start()
     {
-        board=FindFirstObjectByType<Board>(); 
-        hintDelaySeconds=hintDelay;
+        board = Board.Instance;
+        hintDelaySeconds =hintDelay;
     }
 
     void Update()

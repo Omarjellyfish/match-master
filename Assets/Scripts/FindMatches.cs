@@ -7,11 +7,16 @@ public class FindMatches : MonoBehaviour
 {
     private Board board;
     public List<GameObject> currentMatches = new List<GameObject>();
-
+    public static FindMatches Instance;
+    private void Awake()
+    {
+        if (Instance != null && Instance != this) Destroy(this.gameObject);
+        else Instance = this;
+    }
     void Start()
     {
         // Find the Board object in the scene
-        board = FindFirstObjectByType<Board>();
+        board = Board.Instance;
     }
 
     public void FindAllMatches()
@@ -70,7 +75,7 @@ public class FindMatches : MonoBehaviour
         }
         return currentCandies;
     }
-
+    //local to client, result sent via rpc
     private IEnumerator FindAllMatchesCo()
     {
         // Wait a bit before starting to find matches
@@ -98,6 +103,7 @@ public class FindMatches : MonoBehaviour
                             Candy rightCandyObject = rightCandy.GetComponent<Candy>();
                             if (leftCandy.CompareTag(currentCandy.tag) && rightCandy.CompareTag(currentCandy.tag))
                             {
+                                //current matches should be a network var aswell>
                                 currentMatches=currentMatches.Union(IsRowBomb(currentCandyObject, leftCandyObject, rightCandyObject)).ToList();
                                 // Add matched candies to currentMatches, check for col bombs in the row(only the three candies in match)
                                 currentMatches=currentMatches.Union(IsColBomb(currentCandyObject,leftCandyObject,rightCandyObject)).ToList();
@@ -160,10 +166,11 @@ public class FindMatches : MonoBehaviour
                 {
                     currentMatches.Add(candy);
                 }
-                candy.GetComponent<Candy>().isMatched = true;
+                candy.GetComponent<Candy>().isMatched = true; // only send this via rpc to server to destroy matches
             }
         }
     }
+    //specific for (color) bombs
     public void MatchPiecesOfColor(string color)
     {
         for (int i = 0; i < board.width; i++)
@@ -174,7 +181,7 @@ public class FindMatches : MonoBehaviour
                 {
                     if (board.allCandies[i, j].tag == color)
                     {
-                        board.allCandies[i, j].GetComponent<Candy>().isMatched = true;
+                        board.allCandies[i, j].GetComponent<Candy>().isMatched = true; // send this to server via rpc
 
                     }
                 }

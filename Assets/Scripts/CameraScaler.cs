@@ -9,7 +9,7 @@ public class CameraScaler : MonoBehaviour
     public float yOffset=1;
     void Start()
     {
-        board = FindFirstObjectByType<Board>();
+        board = Board.Instance;
         if (board != null)
         {
             RepositionCamera(board.width-1, board.height-1);

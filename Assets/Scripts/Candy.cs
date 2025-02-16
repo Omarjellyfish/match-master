@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 
 public class Candy : MonoBehaviour
@@ -43,9 +44,9 @@ public class Candy : MonoBehaviour
         isColorBomb = false;
         isAdjacentBomb = false;
         // find the board in current scene
-        board = FindFirstObjectByType<Board>();
-        findMatches = FindFirstObjectByType<FindMatches>();
-        hintManager=FindFirstObjectByType<HintManager>();
+        board = Board.Instance;
+        findMatches = FindMatches.Instance;
+        hintManager =FindFirstObjectByType<HintManager>();
 
         // init positions
         //targetX = (int)transform.position.x;
@@ -64,28 +65,22 @@ public class Candy : MonoBehaviour
         {
             //isColBomb = true;
             isAdjacentBomb=true;
-            GameObject adjacent= Instantiate(adjacentMarker, transform.position, Quaternion.identity);
+            GameObject adjacent= Instantiate(adjacentMarker, transform.position, Quaternion.identity);//seprate visual logic
             adjacent.transform.parent = this.transform;
         }
         if (Input.GetMouseButtonDown(2))
         {
             //isColBomb = true;
             isColorBomb= true;
-            GameObject color= Instantiate(colorBomb, transform.position, Quaternion.identity);
+            GameObject color= Instantiate(colorBomb, transform.position, Quaternion.identity);//seprate visual logic
             color.transform.parent = this.transform;
         }
 
     }
     void Update()
     {
-        //FindMatches();
+        //update() needs a rework
 
-        //if (isMatched)
-        //{
-        //    // remove color and lower opacity to indicate a match
-        //    SpriteRenderer mySprite = GetComponent<SpriteRenderer>();
-        //    mySprite.color = new Color(0f, 0f, 0f, .2f);
-        //}
 
         // update target positions
         targetX = col;
@@ -96,7 +91,7 @@ public class Candy : MonoBehaviour
         {
             // move towards the target
             tempPos = new Vector2(targetX, transform.position.y);
-            transform.position = Vector2.Lerp(transform.position, tempPos, Time.deltaTime * 10f);
+            transform.position = Vector2.Lerp(transform.position, tempPos, Time.deltaTime * 10f);//lerping position visual
             findMatches.FindAllMatches();
         }
         else
@@ -111,7 +106,7 @@ public class Candy : MonoBehaviour
         {
             // move towards the target
             tempPos = new Vector2(transform.position.x, targetY);
-            transform.position = Vector2.Lerp(transform.position, tempPos, Time.deltaTime * 10f);
+            transform.position = Vector2.Lerp(transform.position, tempPos, Time.deltaTime * 10f);//lerp visual
             findMatches.FindAllMatches();
         }
         else
@@ -126,10 +121,10 @@ public class Candy : MonoBehaviour
         {
             // ensure correct position of candies on board
             transform.position = new Vector2(targetX, targetY);
-            board.allCandies[col, row] = this.gameObject;
+            board.allCandies[col, row] = this.gameObject;//server side rpc 
         }
     }
-
+    //use it before sending the rpc
     public IEnumerator CheckMoveCo()
     {
         if(isColorBomb)
@@ -164,7 +159,13 @@ public class Candy : MonoBehaviour
         }
         board.state=GameState.move;
     }
+    [ServerRpc(RequireOwnership =false)]
+    private  void DestroyMatchesServerRpc()
+    {
+        board.DestroyMatches();
+    }
 
+    //encapsulate the whole function with isPlayerTurn
     private void OnMouseDown()
     {
 
@@ -182,6 +183,7 @@ public class Candy : MonoBehaviour
 
     private void OnMouseUp()
     {
+        //encapsulate with is player name
         // get finaltouchpos
         if (board.state == GameState.wait)
         {
@@ -206,7 +208,7 @@ public class Candy : MonoBehaviour
             board.state = GameState.move;
         }
     }
-
+    //need to figure out what happens to the board to call .state =>wait, make it client side and have new var .playerstate=turn end/start
     void MovePieces()
     {
         // Ensure correct swapping direction
@@ -275,17 +277,18 @@ public class Candy : MonoBehaviour
         otherCandy.GetComponent<Candy>().previousRow = otherCandy.GetComponent<Candy>().row;
 
         // Swap in the board array
+        //RPC network variable modifiable throughout the code
         board.allCandies[col2, row2] = this.gameObject;
         board.allCandies[col1, row1] = otherCandy;
 
         // Update the candies col and row values
         col = col2;
         row = row2;
-
+        //visual
         otherCandy.GetComponent<Candy>().col = col1;
         otherCandy.GetComponent<Candy>().row = row1;
     }
-
+    //bomb creation both visual and candy
     public void MakeColBomb()
     {
         isColBomb = true;
